@@ -94,7 +94,7 @@ if __name__ == "__main__":
     print(VERSION)
     print('encoding: ' + ENCODING)
     if (len(sys.argv) != 2):
-        print('usage: python pcrvskkserv <skk dic file>')
+        print('usage: python pcrvskkserv.py <skk dic file>')
         sys.exit(1)
     init(sys.argv[1])
     serv()
