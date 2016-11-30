@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-#    pgcrvskkserv.py 0.0.2
+#    pgcrvskkserv.py 0.0.3
 #    Copyright 2016, SASAKI Nobuyuki. Licensed under the MIT license.
 #
 #    usage: python pgcrvskkserv.py
@@ -14,8 +14,9 @@ import threading
 import urllib.parse
 import urllib.request
 import json
+import re
 
-VERSION = 'pgcrvskkserv 0.0.2'
+VERSION = 'pgcrvskkserv 0.0.3'
 HOST = '127.0.0.1'
 PORT = 1178
 ENCODING = 'euc_jis_2004'
@@ -73,6 +74,9 @@ def comm(conn, addr):
         conn.send(encodeq(res, ENCODING))
 
 def request(s):
+    # probably okuri-ari
+    if (re.fullmatch('[^A-Za-z0-9]+[a-z]', s)):
+        return '4\n'
     try:
         url = BASEURL + urllib.parse.quote(s + SUFFIX)
         f = urllib.request.urlopen(url)
