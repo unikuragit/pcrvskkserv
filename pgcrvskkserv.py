@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-#    pgcrvskkserv.py 0.0.1
+#    pgcrvskkserv.py 0.0.2
 #    Copyright 2016, SASAKI Nobuyuki. Licensed under the MIT license.
 #
 #    usage: python pgcrvskkserv.py
@@ -15,9 +15,9 @@ import urllib.parse
 import urllib.request
 import json
 
-VERSION = 'pgcrvskkserv.py 0.0.1'
+VERSION = 'pgcrvskkserv 0.0.2'
 HOST = '127.0.0.1'
-PORT = 58513
+PORT = 1178
 ENCODING = 'euc_jis_2004'
 #ENCODING = 'utf_8'
 BASEURL = 'https://www.google.com/transliterate?langpair=ja-Hira|ja&text='
@@ -25,44 +25,52 @@ SUFFIX = ','
 ANNOTATION = 'G'
 
 def serv():
-    while True:
-        s = None
-        try:
-            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            s.bind((HOST, PORT))
-            s.listen(1)
-            print('listening')
-        except socket.error:
-            s.close()
-            print('socket open error')
-            sys.exit(1)
-        conn, addr = s.accept()
-        print('connected by', addr)
-        t = threading.Thread(target=comm, args=(conn, addr))
-        t.start()
+    print('port: %d' % PORT)
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.bind((HOST, PORT))
+        s.listen(1)
+        while True:
+            conn, addr = s.accept()
+            print('connected by', addr)
+            t = threading.Thread(target=comm, args=(conn, addr))
+            t.start()
+    except socket.error:
+        s.close()
+        print('socket error')
+        sys.exit(1)
 
 def comm(conn, addr):
-    print('communication started')
+    print('started by', addr)
     while True:
         try:
             data = conn.recv(1024)
         except socket.error:
-            print('connection error')
+            print('connection error', addr)
             break
-        if not data: break
+        if not data:
+            conn.close()
+            print('closed by', addr)
+            break
+
+        res = '4\n'
         req = data.decode(ENCODING)
+        printq('=> ' + req)
+
         command = req[0:1]
-        pw(u'=> ' + req)
-        m = '4\n'
-        if (command == '1'):
-            m = request(req[1:len(req) - 1])
+        if (command == '0'):
+            conn.close()
+            break
+        elif (command == '1'):
+            res = request(req[1:len(req) - 1])
         elif (command == '2'):
-            m = VERSION + ' '
+            res = VERSION + ' '
         elif (command == '3'):
-            m = socket.gethostname() + ':' + \
+            res = socket.gethostname() + ':' + \
                 socket.gethostbyname(socket.gethostname()) + ' '
-        pw(u'<= ' + m)
-        conn.send(encode(m, ENCODING))
+
+        printq('<= ' + res)
+        conn.send(encodeq(res, ENCODING))
 
 def request(s):
     try:
@@ -76,28 +84,24 @@ def request(s):
     except urllib.error.URLError:
         return '4\n'
 
-def encode(s, enc):
+def encodeq(s, enc):
     e = b''
-    try:
-        e = s.encode(enc)
-    except UnicodeEncodeError:
-        for c in s:
-            try:
-                e += c.encode(enc)
-            except UnicodeEncodeError:
-                e += b'?'
+    for c in s:
+        try:
+            e += c.encode(enc)
+        except UnicodeEncodeError:
+            e += b'?'
     return e
 
-def pw(s):
-    try:
-        print(s)
-    except UnicodeEncodeError:
-        for c in s:
-            try:
-                print(c, end='')
-            except UnicodeEncodeError:
-                print('?', end='')
+def printq(s):
+    for c in s:
+        try:
+            print(c, end='')
+        except UnicodeEncodeError:
+            print('?', end='')
+    print('')
 
 if __name__ == "__main__":
     print(VERSION)
+    print('encoding: ' + ENCODING)
     serv()
