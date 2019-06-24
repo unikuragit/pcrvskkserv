@@ -78,7 +78,7 @@ def request(s):
     if (re.fullmatch('[^A-Za-z0-9]+[a-z]', s)):
         return '4\n'
     try:
-        url = BASEURL + urllib.parse.quote(s + SUFFIX)
+        url = BASEURL + urllib.parse.quote(s.rstrip() + SUFFIX)
         f = urllib.request.urlopen(url)
         s = f.read().decode('utf_8')
         joiner = ''
