@@ -19,8 +19,8 @@ import re
 VERSION = 'pgcrvskkserv 0.0.3'
 HOST = '127.0.0.1'
 PORT = 1178
-ENCODING = 'euc_jis_2004'
-#ENCODING = 'utf_8'
+#ENCODING = 'euc_jis_2004'
+ENCODING = 'utf_8'
 BASEURL = 'https://www.google.com/transliterate?langpair=ja-Hira|ja&text='
 SUFFIX = ','
 ANNOTATION = 'G'
